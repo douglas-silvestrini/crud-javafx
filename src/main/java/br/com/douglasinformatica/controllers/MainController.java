@@ -1,24 +1,11 @@
 package br.com.douglasinformatica.controllers;
 
-import java.net.URI;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
-import java.util.concurrent.CompletableFuture;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import br.com.douglasinformatica.models.Estabelecimento;
 import br.com.douglasinformatica.models.Produto;
-import br.com.douglasinformatica.utils.Response;
+import br.com.douglasinformatica.services.ProdutoService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -65,12 +52,21 @@ public class MainController implements Initializable {
     @FXML
     private TableColumn<Produto, String> colEstabelecimento;
 
-    ObservableList<Produto> listaProdutos;
+    private static ObservableList<Produto> listaProdutos = FXCollections.observableArrayList();
+
+    private ProdutoService service = new ProdutoService();
+
+    public static ObservableList<Produto> getListaProdutos() {
+        return listaProdutos;
+    }
+
+    public static void setListaProdutos(ArrayList<Produto> listaProdutos) {
+        MainController.listaProdutos.clear();
+        MainController.listaProdutos.addAll(listaProdutos);
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        cbGtin.setSelected(false);
-        listaProdutos = FXCollections.observableArrayList();
         montarTabela();
         btnPesquisar.setOnAction(event -> {
             pesquisar();
@@ -80,41 +76,8 @@ public class MainController implements Initializable {
     public void pesquisar() {
         String termo = txtPesquisa.getText();
         if (termo != "") {
-            System.out.println("Pesquisando por: " + termo);
-            request(termo);
+            service.all(termo, cbGtin.isSelected());
         }
-    }
-
-    public void request(String termo) {
-        String pesquisa = !cbGtin.isSelected() ? "&termo=" + URLEncoder.encode(termo, StandardCharsets.UTF_8)
-                : "&gtin=" + termo;
-        HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build();
-        HttpRequest request = HttpRequest.newBuilder()
-                .GET()
-                .uri(URI.create("https://menorpreco.notaparana.pr.gov.br/api/v1/produtos?local=6gukbgyzh" + pesquisa
-                        + "&offset=0&raio=2&data=-1&ordem=0"))
-                .header("Content-Type", "application/json")
-                .header("Accept", "application/json")
-                .header("User-Agent", "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0")
-                .timeout(Duration.ofSeconds(10))
-                .build();
-        CompletableFuture<HttpResponse<String>> response = client.sendAsync(request, BodyHandlers.ofString());
-        response.thenAccept(data -> {
-            try {
-                traduzir(data);
-            } catch (JsonProcessingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public void traduzir(HttpResponse<String> data) throws JsonMappingException, JsonProcessingException {
-        ObjectMapper obj = new ObjectMapper();
-        Response json = obj.readValue(data.body(), Response.class);
-        listaProdutos.clear();
-        listaProdutos.addAll(json.getProdutos());
-        System.out.println("Produtos carregados");
     }
 
     public void montarTabela() {
@@ -127,8 +90,7 @@ public class MainController implements Initializable {
         colEstabelecimento.setCellValueFactory(
                 param -> {
                     Estabelecimento estabelecimento = param.getValue().getEstabelecimento();
-                    String nome = estabelecimento.getNm_fan() == "" ? estabelecimento.getNm_fan()
-                            : estabelecimento.getNm_emp();
+                    String nome = estabelecimento.getNm_fan() + " - " + estabelecimento.getNm_emp();
                     return new SimpleStringProperty(nome);
                 });
         tblProdutos.setItems(listaProdutos);
