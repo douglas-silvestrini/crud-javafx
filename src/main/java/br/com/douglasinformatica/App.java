@@ -1,40 +1,80 @@
 package br.com.douglasinformatica;
 
 import javafx.application.Application;
-import javafx.scene.Parent;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.Scene;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 import java.io.IOException;
+
+import br.com.douglasinformatica.controllers.PersonOverviewController;
+import br.com.douglasinformatica.models.Person;
 
 /**
  * JavaFX App
  */
 public class App extends Application {
 
-    private static Scene scene;
+    private Stage primaryStage;
+    private BorderPane rootLayout;
+    private ObservableList<Person> personData = FXCollections.observableArrayList();
+
+    public App() {
+        personData.add(new Person("Hans", "Muster"));
+        personData.add(new Person("Ruth", "Mueller"));
+        personData.add(new Person("Heinz", "Kurz"));
+        personData.add(new Person("Cornelia", "Meier"));
+        personData.add(new Person("Werner", "Meyer"));
+        personData.add(new Person("Lydia", "Kunz"));
+        personData.add(new Person("Anna", "Best"));
+        personData.add(new Person("Stefan", "Meier"));
+        personData.add(new Person("Martin", "Mueller"));
+    }
+
+    public ObservableList<Person> getPersonData() {
+        return personData;
+    }
 
     @Override
-    public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("Main"), 1280, 720);
-        stage.setTitle("Meu projeto");
-        stage.setScene(scene);
-        stage.show();
+    public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+        this.primaryStage.setTitle("Meu app");
+
+        initRootLayout();
+        showPersonOverview();
     }
 
-    public static void setRoot(String fxml) throws IOException {
-        scene.setRoot(loadFXML(fxml));
+    public void initRootLayout() {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(App.class.getResource("views/RootLayout.fxml"));
+            rootLayout = (BorderPane) loader.load();
+
+            Scene scene = new Scene(rootLayout);
+            primaryStage.setScene(scene);
+            primaryStage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    private static Parent loadFXML(String fxml) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
-        return fxmlLoader.load();
+    public void showPersonOverview() {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(App.class.getResource("views/PersonOverview.fxml"));
+            AnchorPane personOverview = (AnchorPane) loader.load();
+            rootLayout.setCenter(personOverview);
+            PersonOverviewController controller = loader.getController();
+            controller.setApp(this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    /*
-     * public static void main(String[] args) {
-     * launch();
-     * }
-     */
-
+    public Stage getPrimaryStage() {
+        return this.primaryStage;
+    }
 }

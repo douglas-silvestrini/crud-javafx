@@ -5,11 +5,10 @@ import java.util.ResourceBundle;
 
 import javafx.fxml.Initializable;
 
-public class MainController implements Initializable {
+public class RootLayoutController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'initialize'");
+        System.out.println("Olá mundo");
     }
 }
