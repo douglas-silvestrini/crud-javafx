@@ -6,10 +6,12 @@ import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
 import java.io.IOException;
 
+import br.com.douglasinformatica.controllers.PersonEditDialogController;
 import br.com.douglasinformatica.controllers.PersonOverviewController;
 import br.com.douglasinformatica.models.Person;
 
@@ -76,5 +78,30 @@ public class App extends Application {
 
     public Stage getPrimaryStage() {
         return this.primaryStage;
+    }
+
+    public boolean showPersonEditDialog(Person person) {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(App.class.getResource("views/PersonEditDialog.fxml"));
+            AnchorPane page = (AnchorPane) loader.load();
+            Scene scene = new Scene(page);
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Edit person");
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+            dialogStage.initOwner(primaryStage);
+            dialogStage.setScene(scene);
+
+            PersonEditDialogController controller = loader.getController();
+            controller.setDialogStage(dialogStage);
+            controller.setPerson(person);
+
+            dialogStage.showAndWait();
+            return controller.isOkClicked();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

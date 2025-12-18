@@ -95,4 +95,30 @@ public class PersonOverviewController implements Initializable {
             alert.showAndWait();
         }
     }
+
+    @FXML
+    public void handleNewButton() {
+        Person newPerson = new Person();
+        boolean isOkClicked = app.showPersonEditDialog(newPerson);
+        if (isOkClicked) {
+            app.getPersonData().add(newPerson);
+        }
+    }
+
+    @FXML
+    public void handleEditButton() {
+        Person person = personTable.getSelectionModel().getSelectedItem();
+        if (person != null) {
+            boolean isOkClicked = app.showPersonEditDialog(person);
+            if (isOkClicked) {
+                showPersonDetails(person);
+            }
+        } else {
+            Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle("Ops! Houve um problema");
+            alert.setHeaderText("Nenhum pessoa selecionada");
+            alert.setContentText("Por favor, selecione uma pessoa para editar");
+            alert.showAndWait();
+        }
+    }
 }
